@@ -4,23 +4,32 @@ import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PaintFlagsDrawFilter;
 import android.graphics.PointF;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseIntArray;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 
 import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.lang.annotation.Retention;
@@ -59,6 +68,8 @@ public class SeatView extends View {
      * 缩放的最大值
      */
     private static final float MAX_SCALE_UP_RANGE_TOP = 1.f;
+
+    private static final int ICON_ROUND = 6;//图标圆角
 
     public static final int STATE_NONE = 0;
     public static final int STATE_LOADING = 1;
@@ -175,7 +186,7 @@ public class SeatView extends View {
         this.mShowCenterLine = a.getBoolean(R.styleable.SeatView_seat_showCenterLine, true);
         this.mShowSeatNo = a.getBoolean(R.styleable.SeatView_seat_showSeatNo, false);
         a.recycle();
-
+        initIconBitamp();
         mCenterLinePainter = new CenterLinePainter(context, attrs, defStyleAttr, defStyleRes);
         if (mShowSeatNo) {
             mSeatNoPainter = new SeatNoPainter(context, attrs, defStyleAttr, defStyleRes);
@@ -200,6 +211,98 @@ public class SeatView extends View {
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
 
         mBestSeatFinder = new BestSeatFinder();
+
+    }
+
+    private void initIconBitamp() {
+        float width = Utils.dp2px(getContext(), 24);
+        float height = width;
+        float strokeWidth = Utils.dp2px(getContext(), 1);
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        RectF rectF;
+        //可选时座位的图片
+//        if (mSeatNormal == null) {
+        paint.setColor(Color.parseColor("#8E8E93"));
+        paint.setStyle(Paint.Style.STROKE);//设置边框
+        paint.setStrokeWidth(strokeWidth);
+        Bitmap bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        //设置了边框高度2，在绘制圆角矩形时，往里缩一点，不要让四条边被截掉一半。
+        rectF = new RectF(dip2Px(1), dip2Px(1), width - dip2Px(1), height - dip2Px(1));
+        canvas.drawRoundRect(rectF, ICON_ROUND, ICON_ROUND, paint);
+//            rectF = new RectF(0, 0, width, height);
+//            canvas.drawRoundRect(rectF, ICON_ROUND, ICON_ROUND, paint);
+        int num=14;
+        int size= (int) (height+num);
+        Bitmap bitmap2=Bitmap.createBitmap(size,size, Bitmap.Config.ARGB_8888);
+        canvas = new Canvas(bitmap2);
+        canvas.drawARGB(0,0,0,0);
+        paint.setColor(Color.parseColor("#e0e0e0"));
+        canvas.drawBitmap(bitmap,num/2,num/2,paint);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP));
+        canvas.drawRect(0,0, size,size,paint);
+        mSeatNormal = new BitmapDrawable(bitmap2);
+//        }
+//        //座位已经售出时的图片
+//        if (seatSoldBitmap == null) {
+//            seatSoldBitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+//            Canvas canvas = new Canvas(seatSoldBitmap);
+//            paint.setColor(Color.parseColor("#FE2130"));
+//            paint.setStyle(Paint.Style.FILL);
+//            //设置了边框高度2，在绘制圆角矩形时，往里缩一点，不要让四条边被截掉一半。
+////            rectF = new RectF(1, 1, width - 1, height - 1);
+//            rectF = new RectF(dip2Px(1), dip2Px(1), width - dip2Px(1), height - dip2Px(1));
+//
+//            canvas.drawRoundRect(rectF, ICON_ROUND, ICON_ROUND, paint);
+//        }
+//        //选中状态图标
+//        if (checkedSeatBitmap == null) {
+//            checkedSeatBitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+//            Canvas canvas = new Canvas(checkedSeatBitmap);
+//            paint.setColor(Color.parseColor("#1EC47C"));
+//            paint.setStyle(Paint.Style.FILL);
+////            rectF = new RectF(1, 1, width - 1, height - 1);
+//            rectF = new RectF(dip2Px(1), dip2Px(1), width - dip2Px(1), height - dip2Px(1));
+//
+//            canvas.drawRoundRect(rectF, ICON_ROUND, ICON_ROUND, paint);
+//            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_ticket_check);
+//            float newWidth = dip2Px(18);
+//            float newHeight = dip2Px(18);
+//            float scaleWidth = newWidth / bitmap.getWidth();
+//            float scaleHeight = newHeight / bitmap.getHeight();
+//            Matrix matrix = new Matrix();
+//            matrix.postScale(scaleWidth, scaleHeight);
+//            Bitmap bitMap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+//            canvas.drawBitmap(bitMap, (width - bitMap.getWidth()) / 2, (height - bitMap.getHeight()) / 2, paint);
+//        }
+//        //座位不可用图标
+//        if (seatUnuseableBitmap == null) {
+//            seatUnuseableBitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+//            Canvas canvas = new Canvas(seatUnuseableBitmap);
+//            paint.setColor(Color.parseColor("#D1D1D6"));
+//            paint.setStyle(Paint.Style.FILL);
+////            rectF = new RectF(1, 1, width - 1, height - 1);
+//            rectF = new RectF(dip2Px(1), dip2Px(1), width - dip2Px(1), height - dip2Px(1));
+//
+//            canvas.drawRoundRect(rectF, ICON_ROUND, ICON_ROUND, paint);
+//        }
+//        if (seatColorSet != null) {
+//            for (String color : seatColorSet) {
+//                paint.setColor(Color.parseColor(color));
+//                paint.setStyle(Paint.Style.STROKE);//设置边框
+//                paint.setStrokeWidth(strokeWidth);
+//                Bitmap ticketBitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+//                Canvas canvas = new Canvas(ticketBitmap);
+//                //设置了边框高度2，在绘制圆角矩形时，往里缩一点，不要让四条边被截掉一半。
+////                rectF = new RectF(1, 1, width - 1, height - 1);
+//                rectF = new RectF(dip2Px(1), dip2Px(1), width - dip2Px(1), height - dip2Px(1));
+//
+//                canvas.drawRoundRect(rectF, ICON_ROUND, ICON_ROUND, paint);
+//                ticketTypeBitmaps.put(color, ticketBitmap);
+//            }
+//        }
+
     }
 
     @Override
@@ -307,11 +410,11 @@ public class SeatView extends View {
             }
 
             // 画座位
-            drawSeat(canvas, seat, left, top, right, bottom);
+            drawSeat(canvas, seat, left , top, right, bottom);
         }
 
-        final float seatTotalWidth = seatDrawWidth * mMaxCol;
-        final float seatTotalHeight = seatDrawHeight * mMaxRow;
+        final float seatTotalWidth = seatDrawWidth * mMaxCol ;
+        final float seatTotalHeight = seatDrawHeight * mMaxRow ;
         settingScreenSeatRect(seatTotalWidth, seatTotalHeight);
 
         canvas.restore();
@@ -1103,5 +1206,9 @@ public class SeatView extends View {
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({STATE_NONE, STATE_LOADING, STATE_COMPLETED})
     public @interface SeatState {
+    }
+
+    int dip2Px(float dpValue) {
+        return Utils.dp2px(getContext(), dpValue);
     }
 }
