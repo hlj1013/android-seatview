@@ -19,7 +19,7 @@ import androidx.annotation.Nullable;
  */
 class SeatNoPainter {
 
-    private static final int BACKGROUND_COLOR_DEFAULT = Color.parseColor("#4C000000");
+    private static final int BACKGROUND_COLOR_DEFAULT = Color.parseColor("#4d111111");
 
     /**
      * 画座位号

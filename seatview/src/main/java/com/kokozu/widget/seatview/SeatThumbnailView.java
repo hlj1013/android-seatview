@@ -193,10 +193,10 @@ public class SeatThumbnailView extends View {
             int right = (int) (left + seatDrawWidth);
             int bottom = (int) (top + seatDrawHeight);
 
-            if (col > centerSeatX) {
-                left += 4;
-                right += 4;
-            }
+//            if (col > centerSeatX) {
+//                left += 4;
+//                right += 4;
+//            }
 
             // 画座位
             drawSeat(canvas, seat, left, top, right, bottom);

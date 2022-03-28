@@ -23,13 +23,11 @@ import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseIntArray;
-import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 
 import androidx.annotation.IntDef;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.lang.annotation.Retention;
@@ -67,7 +65,7 @@ public class SeatView extends View {
     /**
      * 缩放的最大值
      */
-    private static final float MAX_SCALE_UP_RANGE_TOP = 1.f;
+    private static final float MAX_SCALE_UP_RANGE_TOP = 1.2f;
 
     private static final int ICON_ROUND = 6;//图标圆角
 
@@ -99,9 +97,9 @@ public class SeatView extends View {
     private Drawable mSeatLoverSelectedL;
     private Drawable mSeatLoverSelectedR;
 
-    private List<SeatData> mSelectedSeats = new ArrayList<>(6);
-    private List<SeatData> mSoldSeats = new ArrayList<>(50);
-    private Map<String, SeatData> mSeatData = new HashMap<>(50);
+    private List<SeatData> mSelectedSeats = new ArrayList<>();
+    private List<SeatData> mSoldSeats = new ArrayList<>();
+    private Map<String, SeatData> mSeatData = new HashMap<>();
 
     private PaintFlagsDrawFilter mDrawFilter;
 
@@ -135,6 +133,9 @@ public class SeatView extends View {
      * 推荐座位
      */
     private BestSeatFinder mBestSeatFinder;
+
+    private String screenName = "号巨幕银屏";//荧幕名称
+    private Bitmap screenBitmap;//荧幕上方图片
 
     public SeatView(Context context) {
         super(context);
@@ -186,6 +187,8 @@ public class SeatView extends View {
         this.mShowCenterLine = a.getBoolean(R.styleable.SeatView_seat_showCenterLine, true);
         this.mShowSeatNo = a.getBoolean(R.styleable.SeatView_seat_showSeatNo, false);
         a.recycle();
+        screenBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_cinema_seatview_name);
+
         initIconBitamp();
         mCenterLinePainter = new CenterLinePainter(context, attrs, defStyleAttr, defStyleRes);
         if (mShowSeatNo) {
@@ -233,59 +236,95 @@ public class SeatView extends View {
         canvas.drawRoundRect(rectF, ICON_ROUND, ICON_ROUND, paint);
 //            rectF = new RectF(0, 0, width, height);
 //            canvas.drawRoundRect(rectF, ICON_ROUND, ICON_ROUND, paint);
-        int num=14;
-        int size= (int) (height+num);
-        Bitmap bitmap2=Bitmap.createBitmap(size,size, Bitmap.Config.ARGB_8888);
+        int num = 14;
+        int size = (int) (height + num);
+        Bitmap bitmap2 = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         canvas = new Canvas(bitmap2);
-        canvas.drawARGB(0,0,0,0);
-        paint.setColor(Color.parseColor("#e0e0e0"));
-        canvas.drawBitmap(bitmap,num/2,num/2,paint);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(Color.parseColor("#F5F5FA"));
+        canvas.drawBitmap(bitmap, num / 2, num / 2, paint);
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP));
-        canvas.drawRect(0,0, size,size,paint);
+        canvas.drawRect(0, 0, size, size, paint);
         mSeatNormal = new BitmapDrawable(bitmap2);
 //        }
 //        //座位已经售出时的图片
 //        if (seatSoldBitmap == null) {
-//            seatSoldBitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
-//            Canvas canvas = new Canvas(seatSoldBitmap);
-//            paint.setColor(Color.parseColor("#FE2130"));
-//            paint.setStyle(Paint.Style.FILL);
-//            //设置了边框高度2，在绘制圆角矩形时，往里缩一点，不要让四条边被截掉一半。
-////            rectF = new RectF(1, 1, width - 1, height - 1);
-//            rectF = new RectF(dip2Px(1), dip2Px(1), width - dip2Px(1), height - dip2Px(1));
+        Bitmap seatSoldBitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+        canvas = new Canvas(seatSoldBitmap);
+        paint.setColor(Color.parseColor("#FE2130"));
+        paint.setStyle(Paint.Style.FILL);
+        //设置了边框高度2，在绘制圆角矩形时，往里缩一点，不要让四条边被截掉一半。
+//            rectF = new RectF(1, 1, width - 1, height - 1);
+        rectF = new RectF(dip2Px(1), dip2Px(1), width - dip2Px(1), height - dip2Px(1));
+
+        canvas.drawRoundRect(rectF, ICON_ROUND, ICON_ROUND, paint);
 //
-//            canvas.drawRoundRect(rectF, ICON_ROUND, ICON_ROUND, paint);
+        bitmap2 = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        canvas = new Canvas(bitmap2);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(Color.parseColor("#F5F5FA"));
+        canvas.drawBitmap(seatSoldBitmap, num / 2, num / 2, paint);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP));
+        canvas.drawRect(0, 0, size, size, paint);
+        mSeatSold = new BitmapDrawable(bitmap2);
 //        }
 //        //选中状态图标
 //        if (checkedSeatBitmap == null) {
-//            checkedSeatBitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
-//            Canvas canvas = new Canvas(checkedSeatBitmap);
-//            paint.setColor(Color.parseColor("#1EC47C"));
-//            paint.setStyle(Paint.Style.FILL);
-////            rectF = new RectF(1, 1, width - 1, height - 1);
-//            rectF = new RectF(dip2Px(1), dip2Px(1), width - dip2Px(1), height - dip2Px(1));
-//
-//            canvas.drawRoundRect(rectF, ICON_ROUND, ICON_ROUND, paint);
-//            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_ticket_check);
-//            float newWidth = dip2Px(18);
-//            float newHeight = dip2Px(18);
-//            float scaleWidth = newWidth / bitmap.getWidth();
-//            float scaleHeight = newHeight / bitmap.getHeight();
-//            Matrix matrix = new Matrix();
-//            matrix.postScale(scaleWidth, scaleHeight);
-//            Bitmap bitMap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-//            canvas.drawBitmap(bitMap, (width - bitMap.getWidth()) / 2, (height - bitMap.getHeight()) / 2, paint);
+        Bitmap checkedSeatBitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+        canvas = new Canvas(checkedSeatBitmap);
+        paint.setColor(Color.parseColor("#1EC47C"));
+        paint.setStyle(Paint.Style.FILL);
+//            rectF = new RectF(1, 1, width - 1, height - 1);
+        rectF = new RectF(dip2Px(1), dip2Px(1), width - dip2Px(1), height - dip2Px(1));
+        canvas.drawRoundRect(rectF, ICON_ROUND, ICON_ROUND, paint);
+
+        bitmap2 = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        canvas = new Canvas(bitmap2);
+        Bitmap checkBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_ticket_check);
+        float newWidth = dip2Px(16);
+        float newHeight = dip2Px(16);
+        float scaleWidth = newWidth / checkBitmap.getWidth();
+        float scaleHeight = newHeight / checkBitmap.getHeight();
+        Matrix matrix = new Matrix();
+        matrix.postScale(scaleWidth, scaleHeight);
+        Bitmap bitMap = Bitmap.createBitmap(checkBitmap, 0, 0, checkBitmap.getWidth(), checkBitmap.getHeight(), matrix, true);
+        canvas.drawBitmap(bitMap, (size - bitMap.getWidth()) / 2, (size - bitMap.getHeight()) / 2, paint);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(Color.parseColor("#F5F5FA"));
+        canvas.drawBitmap(checkedSeatBitmap, num / 2, num / 2, paint);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP));
+
+
+        canvas.drawRect(0, 0, size, size, paint);
+
+
+//        bitmap2 = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+//        canvas = new Canvas(bitmap2);
+//        canvas.drawARGB(0, 0, 0, 0);
+//        paint.setColor(Color.parseColor("#F5F5FA"));
+//        canvas.drawBitmap(checkedSeatBitmap, num / 2, num / 2, paint);
+//        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP));
+//        canvas.drawRect(0, 0, size, size, paint);
+        mSeatSelected = new BitmapDrawable(bitmap2);
 //        }
 //        //座位不可用图标
 //        if (seatUnuseableBitmap == null) {
-//            seatUnuseableBitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
-//            Canvas canvas = new Canvas(seatUnuseableBitmap);
+//            Bitmap seatUnuseableBitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+//             canvas = new Canvas(seatUnuseableBitmap);
 //            paint.setColor(Color.parseColor("#D1D1D6"));
 //            paint.setStyle(Paint.Style.FILL);
 ////            rectF = new RectF(1, 1, width - 1, height - 1);
 //            rectF = new RectF(dip2Px(1), dip2Px(1), width - dip2Px(1), height - dip2Px(1));
 //
 //            canvas.drawRoundRect(rectF, ICON_ROUND, ICON_ROUND, paint);
+//        bitmap2 = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+//        canvas = new Canvas(bitmap2);
+//        canvas.drawARGB(0, 0, 0, 0);
+//        paint.setColor(Color.parseColor("#F5F5FA"));
+//        canvas.drawBitmap(bitmap, num / 2, num / 2, paint);
+//        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP));
+//        canvas.drawRect(0, 0, size, size, paint);
+//        mSeatSold = new BitmapDrawable(bitmap2);
 //        }
 //        if (seatColorSet != null) {
 //            for (String color : seatColorSet) {
@@ -303,6 +342,35 @@ public class SeatView extends View {
 //            }
 //        }
 
+    }
+
+    /**
+     * 绘制影厅名称
+     */
+    private void drawScreenName(Canvas canvas) {
+
+        Paint headPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        headPaint.setStyle(Paint.Style.FILL);
+        headPaint.setTextSize(24);
+        headPaint.setAntiAlias(true);
+        int headHeight = dip2Px(32);
+        float newWidth = dip2Px(258);
+        float newHeight = dip2Px(32);
+        float scaleWidth = newWidth / screenBitmap.getWidth();
+        float scaleHeight = newHeight / screenBitmap.getHeight();
+        Matrix matrix = new Matrix();
+        matrix.postScale(scaleWidth, scaleHeight);
+        Bitmap bitMap = Bitmap.createBitmap(screenBitmap, 0, 0, screenBitmap.getWidth(), screenBitmap.getHeight(), matrix, true);
+        float left, top;
+        left = mCurrentX + getWidth() / 2 - bitMap.getWidth() / 2;
+        top = mDrawStartY - bitMap.getHeight() - headHeight;
+        canvas.drawBitmap(bitMap, left, top, headPaint);
+        headPaint.setColor(Color.parseColor("#575757"));
+        float x, y;
+        top = top + headHeight / 2;
+        x = mCurrentX + getWidth() / 2 - headPaint.measureText(screenName) / 2;
+        y = getBaseLine(headPaint, top, top + headHeight);
+        canvas.drawText(screenName, x, y, headPaint);
     }
 
     @Override
@@ -410,27 +478,27 @@ public class SeatView extends View {
             }
 
             // 画座位
-            drawSeat(canvas, seat, left , top, right, bottom);
+            drawSeat(canvas, seat, left, top, right, bottom);
         }
 
-        final float seatTotalWidth = seatDrawWidth * mMaxCol ;
-        final float seatTotalHeight = seatDrawHeight * mMaxRow ;
+        final float seatTotalWidth = seatDrawWidth * mMaxCol;
+        final float seatTotalHeight = seatDrawHeight * mMaxRow;
         settingScreenSeatRect(seatTotalWidth, seatTotalHeight);
 
         canvas.restore();
-
+        drawScreenName(canvas);
         // 画座位的中心线
-        if (lineX > 0 && lineY > 0 && mShowCenterLine) {
-            boolean seatNotFill = (seatTotalHeight < getHeight());
-            float length = (seatTotalHeight < getHeight() ? seatTotalHeight : getHeight());
-            float startY;
-            if (seatNotFill) {
-                startY = lineStartY + seatDrawHeight * (minGraphRow - 1);
-            } else {
-                startY = 0;
-            }
-            mCenterLinePainter.drawLine(canvas, lineX, startY, length);
-        }
+//        if (lineX > 0 && lineY > 0 && mShowCenterLine) {
+//            boolean seatNotFill = (seatTotalHeight < getHeight());
+//            float length = (seatTotalHeight < getHeight() ? seatTotalHeight : getHeight());
+//            float startY;
+//            if (seatNotFill) {
+//                startY = lineStartY + seatDrawHeight * (minGraphRow - 1);
+//            } else {
+//                startY = 0;
+//            }
+//            mCenterLinePainter.drawLine(canvas, lineX, startY, length);
+//        }
 
         // 画座位的排号
         if (mShowSeatNo && mSeatNo != null) {
@@ -711,7 +779,7 @@ public class SeatView extends View {
 
                 mCurrentX = midX - (midX - mCurrentX) * mScale / mLatestScale;
                 mCurrentY = midY - (midY - mCurrentY) * mScale / mLatestScale;
-
+                Log.e("111111", "mCurrentX:" + mCurrentX + " mCurrentY:" + mCurrentY);
                 invalidate();
                 mLatestScale = mScale;
             }
@@ -1210,5 +1278,11 @@ public class SeatView extends View {
 
     int dip2Px(float dpValue) {
         return Utils.dp2px(getContext(), dpValue);
+    }
+
+    private float getBaseLine(Paint p, float top, float bottom) {
+        Paint.FontMetrics fontMetrics = p.getFontMetrics();
+        int baseline = (int) ((bottom + top - fontMetrics.bottom - fontMetrics.top) / 2);
+        return baseline;
     }
 }

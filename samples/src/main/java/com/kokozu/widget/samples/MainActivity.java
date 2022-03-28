@@ -38,7 +38,11 @@ public class MainActivity extends AppCompatActivity implements OnChooseSeatListe
         seatView.setSeatState(SeatView.STATE_LOADING);
 
         loadSeats();
-
+        findViewById(R.id.btn1).setVisibility(View.GONE);
+        findViewById(R.id.btn2).setVisibility(View.GONE);
+        findViewById(R.id.btn3).setVisibility(View.GONE);
+        findViewById(R.id.btn4).setVisibility(View.GONE);
+        findViewById(R.id.btn5).setVisibility(View.GONE);
         findViewById(R.id.btn1).setOnClickListener(mRecommendClicked);
         findViewById(R.id.btn2).setOnClickListener(mRecommendClicked);
         findViewById(R.id.btn3).setOnClickListener(mRecommendClicked);
@@ -129,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements OnChooseSeatListe
                                 }
 
                                 try {
-                                    Thread.sleep(3000);
+                                    Thread.sleep(1000);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }
