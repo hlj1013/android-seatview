@@ -779,7 +779,6 @@ public class SeatView extends View {
 
                 mCurrentX = midX - (midX - mCurrentX) * mScale / mLatestScale;
                 mCurrentY = midY - (midY - mCurrentY) * mScale / mLatestScale;
-                Log.e("111111", "mCurrentX:" + mCurrentX + " mCurrentY:" + mCurrentY);
                 invalidate();
                 mLatestScale = mScale;
             }
