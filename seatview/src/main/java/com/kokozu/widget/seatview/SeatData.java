@@ -31,7 +31,10 @@ public class SeatData implements Parcelable {
      * 选中的座位。
      */
     public static final int STATE_SELECTED = 2;
-
+    /**
+     * 不可用座位。
+     */
+    public static final int STATE_UNUSED = 3;
     /**
      * 普通座位。
      */
@@ -132,7 +135,7 @@ public class SeatData implements Parcelable {
     }
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({STATE_NORMAL, STATE_SOLD, STATE_SELECTED})
+    @IntDef({STATE_NORMAL, STATE_SOLD, STATE_SELECTED,STATE_UNUSED})
     public @interface SeatState {
     }
 

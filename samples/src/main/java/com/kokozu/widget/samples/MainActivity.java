@@ -114,10 +114,16 @@ public class MainActivity extends AppCompatActivity implements OnChooseSeatListe
                                 final List<SeatData> seatList = new ArrayList<>();
                                 for (Seat seat : seats) {
                                     SeatData seatData = new SeatData();
-                                    seatData.state =
-                                            seat.getSeatState() == 0
-                                                    ? SeatData.STATE_NORMAL
-                                                    : SeatData.STATE_SOLD;
+                                    if (seat.getSeatState() == 0) {
+                                        seatData.state = SeatData.STATE_NORMAL;
+                                    } else if (seat.getSeatState() == 1) {
+                                        seatData.state = SeatData.STATE_SOLD;
+                                    } else if (seat.getSeatState() == 2) {
+                                        seatData.state = SeatData.STATE_SELECTED;
+                                    } else if (seat.getSeatState() == 3) {
+                                        seatData.state = SeatData.STATE_UNUSED;
+                                    }
+
                                     seatData.point =
                                             new Point(
                                                     seat.getGraphRow(), seat.getGraphCol());
@@ -133,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements OnChooseSeatListe
                                 }
 
                                 try {
-                                    Thread.sleep(1000);
+                                    Thread.sleep(3000);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }
@@ -169,10 +175,15 @@ public class MainActivity extends AppCompatActivity implements OnChooseSeatListe
                                 final List<SeatData> seatList = new ArrayList<>();
                                 for (Seat seat : seats) {
                                     SeatData seatData = new SeatData();
-                                    seatData.state =
-                                            seat.getSeatState() == 0
-                                                    ? SeatData.STATE_NORMAL
-                                                    : SeatData.STATE_SOLD;
+                                    if (seat.getSeatState() == 0) {
+                                        seatData.state = SeatData.STATE_NORMAL;
+                                    } else if (seat.getSeatState() == 1) {
+                                        seatData.state = SeatData.STATE_SOLD;
+                                    } else if (seat.getSeatState() == 2) {
+                                        seatData.state = SeatData.STATE_SELECTED;
+                                    } else if (seat.getSeatState() == 3) {
+                                        seatData.state = SeatData.STATE_UNUSED;
+                                    }
                                     seatData.point =
                                             new Point(
                                                     seat.getGraphRow(), seat.getGraphCol());

@@ -90,6 +90,7 @@ public class SeatView extends View {
     private Drawable mSeatNormal;
     private Drawable mSeatSold;
     private Drawable mSeatSelected;
+    private Drawable mSeatUnused;
     private Drawable mSeatLoverNormalL;
     private Drawable mSeatLoverNormalR;
     private Drawable mSeatLoverSoldL;
@@ -309,22 +310,22 @@ public class SeatView extends View {
 //        }
 //        //座位不可用图标
 //        if (seatUnuseableBitmap == null) {
-//            Bitmap seatUnuseableBitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
-//             canvas = new Canvas(seatUnuseableBitmap);
-//            paint.setColor(Color.parseColor("#D1D1D6"));
-//            paint.setStyle(Paint.Style.FILL);
-////            rectF = new RectF(1, 1, width - 1, height - 1);
-//            rectF = new RectF(dip2Px(1), dip2Px(1), width - dip2Px(1), height - dip2Px(1));
-//
-//            canvas.drawRoundRect(rectF, ICON_ROUND, ICON_ROUND, paint);
-//        bitmap2 = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-//        canvas = new Canvas(bitmap2);
-//        canvas.drawARGB(0, 0, 0, 0);
-//        paint.setColor(Color.parseColor("#F5F5FA"));
-//        canvas.drawBitmap(bitmap, num / 2, num / 2, paint);
-//        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP));
-//        canvas.drawRect(0, 0, size, size, paint);
-//        mSeatSold = new BitmapDrawable(bitmap2);
+        Bitmap unusedBitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+        canvas = new Canvas(unusedBitmap);
+        paint.setColor(Color.parseColor("#D1D1D6"));
+        paint.setStyle(Paint.Style.FILL);
+//            rectF = new RectF(1, 1, width - 1, height - 1);
+        rectF = new RectF(dip2Px(1), dip2Px(1), width - dip2Px(1), height - dip2Px(1));
+
+        canvas.drawRoundRect(rectF, ICON_ROUND, ICON_ROUND, paint);
+        bitmap2 = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        canvas = new Canvas(bitmap2);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(Color.parseColor("#F5F5FA"));
+        canvas.drawBitmap(unusedBitmap, num / 2, num / 2, paint);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP));
+        canvas.drawRect(0, 0, size, size, paint);
+        mSeatUnused = new BitmapDrawable(unusedBitmap);
 //        }
 //        if (seatColorSet != null) {
 //            for (String color : seatColorSet) {
@@ -557,6 +558,22 @@ public class SeatView extends View {
             // 普通座位
             else {
                 drawable = mSeatSelected;
+            }
+        }// 不能使用座位
+        else if (seat.state == SeatData.STATE_UNUSED) {
+            Log.e("11111","2222222222222222222");
+            // 情侣座左边的座位
+            if (seat.isLoverLeftSeat()) {
+                drawable = mSeatLoverSoldL;
+            }
+            // 情侣座右边的座位
+            else if (seat.isLoverRightSeat()) {
+                drawable = mSeatLoverSoldR;
+                bounds.left -= 1;
+            }
+            // 普通座位
+            else {
+                drawable = mSeatUnused;
             }
         }
         // 座位已售

@@ -74,7 +74,7 @@
       "graphRow": 16,
       "seatCol": "15",
       "seatRow": "15",
-      "seatState": 0,
+      "seatState": 3,
       "seatType": 0
     },
     {
@@ -85,7 +85,7 @@
       "graphRow": 16,
       "seatCol": "14",
       "seatRow": "15",
-      "seatState": 0,
+      "seatState": 3,
       "seatType": 0
     },
     {
